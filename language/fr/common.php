@@ -83,12 +83,12 @@ $lang = array_merge($lang, array(
 	'POSTING_NEW_IDEA'		=> 'Publication d’une nouvelle idée',
 
 	'RATING'                => 'Votes',
-	'REMOVE_VOTE'			=> 'Retirer mon vote',
+	'REMOVE_VOTE'			=> 'Retirer son vote',
 	'RETURN_IDEAS'			=> '%sretourner aux idées%s',
 	'RFC'					=> 'RFC (demande de commentaires)',
 	'RFC_ERROR'				=> 'Un RFC doit être un sujet ouvert sur le forum Area51.',
 
-	'SEARCH_IDEAS'			=> 'Rechercher des idées...',
+	'SEARCH_IDEAS'			=> 'Rechercher des idées…',
 	'SCORE'                 => 'Score',
 	'SHOW_W_STATUS'			=> 'Afficher les idées avec leur statut',
 	'STATUS'				=> 'Statut',
@@ -110,19 +110,18 @@ $lang = array_merge($lang, array(
 		2	=> '%s points.',
 	),
 
-	'UPDATED_VOTE'			=> 'Vote mis à jour avec succès !',
+	'UPDATED_VOTE'			=> 'Le vote a été mis à jour avec succès !',
 
-	'VIEW_ALL'				=> 'Voir tout',
 	'VIEW_IDEA'				=> 'Voir l’idée',
 	'VIEW_IMPLEMENTED'		=> 'Voir toutes les idées implémentées',
 	'VIEW_LATEST'			=> 'Voir toutes les idées ouvertes',
 	'VIEW_TOP'				=> 'Voir les idées les mieux notées',
-	'VIEWING_IDEAS'			=> 'Voit les idées',
+	'VIEWING_IDEAS'			=> 'Consulte les idées',
 	'VOTE'					=> 'Voter',
 	'VOTE_DOWN'				=> 'Voter contre',
 	'VOTE_ERROR'			=> 'Une erreur s’est produite',
 	'VOTE_FAIL'				=> 'Échec lors du vote; il est recommandé de vérifier sa connexion au forum.',
-	'VOTE_SUCCESS'			=> 'Vote réalisé avec succès pour cette idée.',
+	'VOTE_SUCCESS'			=> 'Le vote pour cette idée a été réalisé avec succès.',
 	'VOTE_UP'				=> 'Voter pour',
 	'VOTES'					=> 'Votes',
 ));
