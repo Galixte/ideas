@@ -17,6 +17,9 @@ class ideas_base extends \phpbb_database_test_case
 		return array('phpbb/ideas');
 	}
 
+	/** @var \phpbb\auth\auth|\PHPUnit_Framework_MockObject_MockObject */
+	protected $auth;
+
 	/** @var \phpbb\config\config */
 	protected $config;
 
@@ -25,9 +28,6 @@ class ideas_base extends \phpbb_database_test_case
 
 	/** @var \phpbb\language\language */
 	protected $lang;
-
-	/** @var \phpbb\log\log */
-	protected $log;
 
 	/** @var \phpbb\user */
 	protected $user;
@@ -46,7 +46,7 @@ class ideas_base extends \phpbb_database_test_case
 
 		global $auth, $config, $db, $phpbb_dispatcher, $phpbb_root_path, $phpEx, $request;
 
-		$auth = $this->getMock('\phpbb\auth\auth');
+		$this->auth = $auth = $this->getMock('\phpbb\auth\auth');
 		$this->config = $config = new \phpbb\config\config(array(
 			'posts_per_page' => 10,
 			'ideas_forum_id' => 2,
@@ -60,9 +60,6 @@ class ideas_base extends \phpbb_database_test_case
 			$this->lang,
 			'\phpbb\datetime'
 		));
-		$this->log = $this->getMockBuilder('\phpbb\log\log')
-			->disableOriginalConstructor()
-			->getMock();
 		$this->php_ext = $phpEx;
 		$request = $this->getMock('\phpbb\request\request');
 	}
@@ -75,10 +72,10 @@ class ideas_base extends \phpbb_database_test_case
 	protected function get_ideas_object()
 	{
 		return new \phpbb\ideas\factory\ideas(
+			$this->auth,
 			$this->config,
 			$this->db,
 			$this->lang,
-			$this->log,
 			$this->user,
 			'phpbb_ideas_ideas',
 			'phpbb_ideas_votes',

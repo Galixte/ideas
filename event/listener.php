@@ -203,6 +203,25 @@ class listener implements EventSubscriberInterface
 			$this->auth->acl_get('f_vote', (int) $this->config['ideas_forum_id']) &&
 			$event['topic_data']['topic_status'] != ITEM_LOCKED);
 
+		$s_voted_up = $s_voted_down = false;
+		if ($idea['idea_votes_up'] || $idea['idea_votes_down'])
+		{
+			$votes = $this->ideas->get_voters($idea['idea_id']);
+
+			foreach ($votes as $vote)
+			{
+				$this->template->assign_block_vars('votes_' . ($vote['vote_value'] ? 'up' : 'down'), array(
+					'USER' => $vote['user'],
+				));
+
+				if ($this->user->data['user_id'] == $vote['user_id'])
+				{
+					$s_voted_up = ((int) $vote['vote_value'] === 1);
+					$s_voted_down = ((int) $vote['vote_value'] === 0);
+				}
+			}
+		}
+
 		$this->template->assign_vars(array(
 			'IDEA_ID'			=> $idea['idea_id'],
 			'IDEA_TITLE'		=> $idea['idea_title'],
@@ -219,41 +238,25 @@ class listener implements EventSubscriberInterface
 			'IDEA_DUPLICATE'	=> $idea['duplicate_id'],
 			'IDEA_RFC'			=> $idea['rfc_link'],
 			'IDEA_TICKET'		=> $idea['ticket_id'],
+			'IDEA_IMPLEMENTED'	=> $idea['implemented_version'],
 
 			'U_IDEA_DUPLICATE'	=> $this->link_helper->get_idea_link((int) $idea['duplicate_id']),
 
 			'S_IS_MOD'			=> $mod,
 			'S_CAN_EDIT'		=> $mod || $own,
 			'S_CAN_VOTE'		=> $can_vote,
+			'S_CAN_VOTE_UP'		=> $can_vote && !$s_voted_up,
+			'S_CAN_VOTE_DOWN'	=> $can_vote && !$s_voted_down,
+			'S_VOTED'			=> $s_voted_up || $s_voted_down,
 
 			'U_CHANGE_STATUS'	=> $this->link_helper->get_idea_link($idea['idea_id'], 'status', true),
 			'U_EDIT_DUPLICATE'	=> $this->link_helper->get_idea_link($idea['idea_id'], 'duplicate', true),
 			'U_EDIT_RFC'		=> $this->link_helper->get_idea_link($idea['idea_id'], 'rfc', true),
+			'U_EDIT_IMPLEMENTED'=> $this->link_helper->get_idea_link($idea['idea_id'], 'implemented', true),
 			'U_EDIT_TICKET'		=> $this->link_helper->get_idea_link($idea['idea_id'], 'ticket', true),
 			'U_REMOVE_VOTE'		=> $this->link_helper->get_idea_link($idea['idea_id'], 'removevote', true),
 			'U_IDEA_VOTE'		=> $this->link_helper->get_idea_link($idea['idea_id'], 'vote', true),
 		));
-
-		if ($idea['idea_votes_up'] || $idea['idea_votes_down'])
-		{
-			$s_voted = false;
-
-			$votes = $this->ideas->get_voters($idea['idea_id']);
-
-			foreach ($votes as $vote)
-			{
-				$this->template->assign_block_vars('votes_' . ($vote['vote_value'] ? 'up' : 'down'), array(
-					'USER' => $vote['user'],
-				));
-
-				if ($this->user->data['user_id'] == $vote['user_id'])
-				{
-					$s_voted = true;
-				}
-			}
-
-			$this->template->assign_var('S_VOTED', $s_voted);
-		}
 
 		// Use Ideas breadcrumbs
 		$this->template->destroy_block_vars('navlinks');

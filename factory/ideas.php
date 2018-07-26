@@ -10,10 +10,10 @@
 
 namespace phpbb\ideas\factory;
 
+use phpbb\auth\auth;
 use phpbb\config\config;
 use phpbb\db\driver\driver_interface;
 use phpbb\language\language;
-use phpbb\log\log;
 use phpbb\user;
 
 class ideas
@@ -37,6 +37,9 @@ class ideas
 		'INVALID'		=> 5,
 	);
 
+	/** @var auth */
+	protected $auth;
+
 	/* @var config */
 	protected $config;
 
@@ -45,9 +48,6 @@ class ideas
 
 	/** @var language */
 	protected $language;
-
-	/** @var log */
-	protected $log;
 
 	/* @var user */
 	protected $user;
@@ -71,22 +71,22 @@ class ideas
 	protected $profile_url;
 
 	/**
+	 * @param auth             $auth
 	 * @param config           $config
 	 * @param driver_interface $db
 	 * @param language         $language
-	 * @param log              $log
 	 * @param user             $user
 	 * @param string           $table_ideas
 	 * @param string           $table_votes
 	 * @param string           $table_topics
 	 * @param string           $phpEx
 	 */
-	public function __construct(config $config, driver_interface $db, language $language, log $log, user $user, $table_ideas, $table_votes, $table_topics, $phpEx)
+	public function __construct(auth $auth, config $config, driver_interface $db, language $language, user $user, $table_ideas, $table_votes, $table_topics, $phpEx)
 	{
+		$this->auth = $auth;
 		$this->config = $config;
 		$this->db = $db;
 		$this->language = $language;
-		$this->log = $log;
 		$this->user = $user;
 
 		$this->php_ext = $phpEx;
@@ -154,11 +154,22 @@ class ideas
 			$where .= ' AND i.idea_votes_up > i.idea_votes_down';
 		}
 
+		// Only get approved topics for regular users, Moderators can see unapproved topics
+		if (!$this->auth->acl_get('m_', $this->config['ideas_forum_id']))
+		{
+			$where .= ' AND t.topic_visibility = ' . ITEM_APPROVED;
+		}
+
+		// Only get ideas that are actually in the ideas forum (not ones that have been moved)
+		$where .= ' AND t.forum_id = ' . (int) $this->config['ideas_forum_id'];
+
 		// Count the total number of ideas for pagination
 		if ($number >= $this->config['posts_per_page'])
 		{
 			$sql = 'SELECT COUNT(i.idea_id) as num_ideas
-				FROM ' . $this->table_ideas . " i
+				FROM ' . $this->table_ideas . ' i
+       			INNER JOIN ' . $this->table_topics . " t 
+       				ON i.topic_id = t.topic_id
 				WHERE $where";
 			$result = $this->db->sql_query($sql);
 			$num_ideas = (int) $this->db->sql_fetchfield('num_ideas');
@@ -168,12 +179,9 @@ class ideas
 			$this->idea_count = $num_ideas;
 		}
 
-		// Only get approved topics
-		$where .= ' AND t.topic_visibility = ' . ITEM_APPROVED;
-
 		if ($sortby !== 'TOP' && $sortby !== 'ALL')
 		{
-			$sql = 'SELECT t.topic_last_post_time, t.topic_status, i.*
+			$sql = 'SELECT t.topic_last_post_time, t.topic_status, t.topic_visibility, i.*
 				FROM ' . $this->table_ideas . ' i
 				INNER JOIN ' . $this->table_topics . " t 
 					ON i.topic_id = t.topic_id
@@ -184,7 +192,7 @@ class ideas
 		{
 			// YEEEEEEEEAAAAAAAAAAAAAHHHHHHH
 			// From http://evanmiller.org/how-not-to-sort-by-average-rating.html
-			$sql = 'SELECT t.topic_last_post_time, t.topic_status, i.*,
+			$sql = 'SELECT t.topic_last_post_time, t.topic_status, t.topic_visibility, i.*,
 				((i.idea_votes_up + 1.9208) / (i.idea_votes_up + i.idea_votes_down) -
 	            1.96 * SQRT((i.idea_votes_up * i.idea_votes_down) / (i.idea_votes_up + i.idea_votes_down) + 0.9604) /
 	            (i.idea_votes_up + i.idea_votes_down)) / (1 + 3.8416 / (i.idea_votes_up + i.idea_votes_down))
@@ -350,6 +358,31 @@ class ideas
 
 		$sql_ary = array(
 			'ticket_id'	=> (int) $ticket,
+		);
+
+		$this->update_idea_data($sql_ary, $idea_id, $this->table_ideas);
+
+		return true;
+	}
+
+	/**
+	 * Sets the implemented version of an idea.
+	 *
+	 * @param int    $idea_id ID of the idea to be updated.
+	 * @param string $version Version of phpBB the idea was implemented in.
+	 *
+	 * @return bool True if set, false if invalid.
+	 */
+	public function set_implemented($idea_id, $version)
+	{
+		$match = '/^\d\.\d\.\d+(\-\w+)?$/';
+		if ($version && !preg_match($match, $version))
+		{
+			return false;
+		}
+
+		$sql_ary = array(
+			'implemented_version'	=> $version, // string is escaped by build_array()
 		);
 
 		$this->update_idea_data($sql_ary, $idea_id, $this->table_ideas);
@@ -621,7 +654,7 @@ class ideas
 
 			'enable_indexing'	=> true,
 
-			'force_approved_state'	=> true,
+			'force_approved_state'	=> (!$this->auth->acl_get('f_noapprove', $this->config['ideas_forum_id'])) ? ITEM_UNAPPROVED : true,
 		);
 
 		// Get Ideas Bot info
@@ -691,7 +724,8 @@ class ideas
 		// Find any orphans
 		$sql = 'SELECT idea_id FROM ' . $this->table_ideas . '
  			WHERE topic_id NOT IN (SELECT t.topic_id 
- 			FROM ' . $this->table_topics . ' t)';
+ 			FROM ' . $this->table_topics . ' t
+ 				WHERE t.forum_id = ' . (int) $this->config['ideas_forum_id'] . ')';
 		$result = $this->db->sql_query($sql);
 		$rows = $this->db->sql_fetchrowset($result);
 		$this->db->sql_freeresult($result);
