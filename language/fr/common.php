@@ -4,8 +4,8 @@
  * Ideas. An extension for the phpBB Forum Software package.
  * French translation by Galixte (http://www.galixte.com)
  *
- * @copyright (c) 2017 phpBB Limited <https://www.phpbb.com>
- * @license GNU General Public License, version 2 (GPL-2.0)
+ * @copyright (c) 2018 phpBB Limited <https://www.phpbb.com>
+ * @license GNU General Public License, version 2 (GPL-2.0-only)
  *
  */
 
@@ -41,7 +41,7 @@ if (empty($lang) || !is_array($lang))
 $lang = array_merge($lang, array(
 	'ADD'					=> 'Ajouter',
 	'ALL_IDEAS'				=> 'Toutes les idées',
-	'ALREADY_VOTED'			=> 'Un votre a déjà été soumis sur cette idée.',
+	'ALREADY_VOTED'			=> 'Un vote a déjà été soumis sur cette idée.',
 
 	'CHANGE_STATUS'			=> 'Modifier le statut',
 	'CLICK_TO_VIEW'			=> 'Cliquer pour voir les votes.',
@@ -60,10 +60,13 @@ $lang = array_merge($lang, array(
 	'IDEA_LIST'				=> 'Liste des idées',
 	'IDEA_NUM'				=> 'Idée n°',
 	'IDEA_NOT_FOUND'		=> 'Idée non trouvée',
+	'IDEA_STORED_MOD'		=> 'L’idée a été soumise avec succès, mais il est nécessaire qu’elle soit approuvée par un modérateur avant sa publication. Une notification vous sera envoyée lorsque l’idée aura été approuvée.<br /><br /><a href="%s">Retourner à la boite à idées</a>.',
 	'IDEAS_TITLE'			=> 'Boite à idées',
 	'IDEAS_NOT_AVAILABLE'	=> 'Actuellement, les idées ne sont pas accessibles.',
 	'IMPLEMENTED'           => 'Implémentée',
+	'IMPLEMENTED_ERROR'		=> 'Doit être un numéro de version de phpBB valide.',
 	'IMPLEMENTED_IDEAS'		=> 'Idées récemment implémentées',
+	'IMPLEMENTED_VERSION'	=> 'Version de phpBB',
 	'IN_PROGRESS'           => 'En cours de progression',
 	'INVALID'				=> 'Non valable',
 	'INVALID_VOTE'			=> 'Vote incorrect; le nombre saisi	était incorrect.',
