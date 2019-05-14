@@ -49,8 +49,10 @@ class listener_test extends \phpbb_test_case
 		global $phpbb_root_path, $phpEx;
 
 		// Load/Mock classes required by the event listener class
-		$this->auth = $this->getMock('\phpbb\auth\auth');
-		$this->config = new \phpbb\config\config(array('ideas_forum_id' => 2, 'ideas_poster_id' => 2));
+		$this->auth = $this->getMockBuilder('\phpbb\auth\auth')
+			->disableOriginalConstructor()
+			->getMock();
+		$this->config = new \phpbb\config\config(array('ideas_forum_id' => 2));
 		$this->helper = $this->getMockBuilder('\phpbb\controller\helper')
 			->disableOriginalConstructor()
 			->getMock();
@@ -201,7 +203,12 @@ class listener_test extends \phpbb_test_case
 
 		$this->assertEquals($expected, $event['post_row']['U_DELETE']);
 		$this->assertEquals($expected, $event['post_row']['U_WARN']);
-		$this->assertEquals($expected, $event['post_row']['U_QUOTE']);
+
+		// These should always be true since we're not changing them
+		$this->assertTrue($event['post_row']['U_QUOTE']);
+		$this->assertTrue($event['post_row']['U_EDIT']);
+		$this->assertTrue($event['post_row']['U_REPORT']);
+		$this->assertTrue($event['post_row']['U_INFO']);
 	}
 
 	/**
